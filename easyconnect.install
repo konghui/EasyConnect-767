@@ -1,0 +1,90 @@
+# Maintainer: Leo Yang <webmaster@raspii.tech>
+
+pre_install() {
+	PAK_ARCH="amd64"
+	ERR_OUT=/tmp/EasyConnect.install.error
+	if [ -f $ERR_OUT ]; then
+		echo > $ERR_OUT
+	fi
+}
+post_install() {
+	EasyConnectDir=/usr/share/sangfor/EasyConnect
+	ResourcesDir=${EasyConnectDir}/resources
+	ECAGENT_IMPORT_CA=${ResourcesDir}"/usr/bin/ECAgent --install-import-cert"
+	add_service(){
+		${ECAGENT_IMPORT_CA} > /dev/null 2>&1
+		cat <<EOF >/usr/lib/systemd/system/EasyMonitor.service
+[Unit]
+Description=Sangfor EasyMonitor Service
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/usr/share/sangfor/EasyConnect/resources/bin/EasyMonitor
+ExecReload=/bin/kill -USR1 \$MAINPID
+ExecStop=/bin/kill -QUIT \$MAINPID
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
+		systemctl enable EasyMonitor
+	    systemctl start EasyMonitor
+	}
+	change_authority(){
+	    chmod +x ${EasyConnectDir}/EasyConnect
+	    mkdir -p ${ResourcesDir}/logs
+	    chmod 755 ${ResourcesDir}/logs
+	    chmod 755 ${ResourcesDir}/conf -R
+	    chmod +x ${ResourcesDir}/shell/*
+	    chown root:root ${ResourcesDir}/bin/ECAgent
+	    chown root:root ${ResourcesDir}/bin/svpnservice
+	    chown root:root ${ResourcesDir}/bin/CSClient
+	    chmod +s ${ResourcesDir}/bin/ECAgent
+	    chmod +s ${ResourcesDir}/bin/svpnservice
+	    chmod +s ${ResourcesDir}/bin/CSClient
+	}
+	change_authority
+	add_service
+	exit 0
+}
+pre_upgrade(){
+	pre_install
+}
+post_upgrade(){
+	post_install
+}
+pre_remove(){
+	kill_programe(){
+	    pidof EasyMonitor
+	    if [ $? -eq 0 ];then
+	        killall -9 EasyMonitor
+	    fi
+	    pidof ECAgent
+	    if [ $? -eq 0 ];then
+	        killall -9 ECAgent
+	    fi
+	    pidof EasyConnect
+	    if [ $? -eq 0 ];then
+	        killall -9 EasyConnect
+	    fi
+	    pidof CSClient
+	    if [ $? -eq 0 ];then
+	        killall -9 CSClient
+	    fi
+	    pidof svpnservice
+	    if [ $? -eq 0 ];then
+	        killall -9 svpnservice
+	    fi
+	}
+	EASYMONITOR="/usr/share/sangfor/EasyConnect/resources/bin/EasyMonitor"
+	systemctl stop EasyMonitor
+	systemctl disable EasyMonitor
+	kill_programe
+	${EASYMONITOR} -a -r > /dev/null 2>&1
+	exit 0
+}
+post_remove() {
+	rm -rf /usr/share/sangfor/EasyConnect
+    exit 0
+}
