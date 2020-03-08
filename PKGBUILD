@@ -10,7 +10,7 @@ license=('custom')
 install=${pkgname}.install
 source=("http://download.sangfor.com.cn/download/product/sslvpn/pkg/linux_767/EasyConnect_x64_7_6_7_3.deb"
         "http://ftp.gnome.org/pub/GNOME/sources/pango/1.42/pango-1.42.4.tar.xz")
-md5sums=('ac2020ce44583d5ee4552c81563dce9c'
+md5sums=('89441c8eadab3c6c8f701f32d680d0b6'
           'deb171a31a3ad76342d5195a1b5bbc7c')
 package(){
 	tar xzf data.tar.gz -C "${pkgdir}"
