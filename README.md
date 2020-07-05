@@ -5,7 +5,7 @@ Make SangFor EasyConnect run on your Arch Linux distribution.
 ## Usage
 
 ```shell
-cd EasyConnect-767 && makepkg
+cd EasyConnect-for-archlinux && makepkg
 sudo pacman -U easyconnect-7.6.7.3-4-x86_64.pkg.tar.xz
 ```
 
